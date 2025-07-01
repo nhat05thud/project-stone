@@ -13,7 +13,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/noise.hpp> //EP4
+#include <glm/gtc/random.hpp>
 
 #include <stb_image.h>
+
+#include <iostream>
 
 #endif //PRIVATE_HPP

@@ -19,7 +19,7 @@
 
 #include <core/file.hpp>
 
-#include "map_tile.hpp"
+#include "map.hpp"
 
 auto main() -> int {
 
@@ -82,13 +82,37 @@ auto main() -> int {
     core::texture::data ground_1_texture_data;
     core::texture::data water_1_texture_data;
 
+    core::texture::data ground_water_bottom_left_data;
+    core::texture::data ground_water_bottom_right_data;
+
+    core::texture::data ground_water_top_left_data;
+    core::texture::data ground_water_top_right_data;
+
     ground_1_texture_data.ptr = stbi_load("ground_1.png", &ground_1_texture_data.width, &ground_1_texture_data.height, &nr_channels, 0);
     water_1_texture_data.ptr = stbi_load("snow.png", &water_1_texture_data.width, &water_1_texture_data.height, &nr_channels, 0);
+
+    ground_water_bottom_left_data.ptr = stbi_load("left_bottom.png", &ground_water_bottom_left_data.width, &ground_water_bottom_left_data.height, &nr_channels, 0);
+    ground_water_bottom_right_data.ptr = stbi_load("right_bottom.png", &ground_water_bottom_right_data.width, &ground_water_bottom_right_data.height, &nr_channels, 0);
+
+    ground_water_top_left_data.ptr = stbi_load("left_top.png", &ground_water_top_left_data.width, &ground_water_top_left_data.height, &nr_channels, 0);
+    ground_water_top_right_data.ptr = stbi_load("right_top.png", &ground_water_top_right_data.width, &ground_water_top_right_data.height, &nr_channels, 0);
 
     if (ground_1_texture_data.ptr == nullptr) {
         return -2;
     }
     if (water_1_texture_data.ptr == nullptr) {
+        return -2;
+    }
+    if (ground_water_bottom_left_data.ptr == nullptr) {
+        return -2;
+    }
+    if (ground_water_bottom_right_data.ptr == nullptr) {
+        return -2;
+    }
+    if (ground_water_top_left_data.ptr == nullptr) {
+        return -2;
+    }
+    if (ground_water_top_right_data.ptr == nullptr) {
         return -2;
     }
 
@@ -104,6 +128,32 @@ auto main() -> int {
     water_1_texture.storage(water_1_texture_data, GL_RGBA8);
     water_1_texture.update(water_1_texture_data, GL_RGBA);
 
+    opengl::Texture ground_water_bottom_left_texture;
+    ground_water_bottom_left_texture.type(opengl::constants::texture_2d);
+    ground_water_bottom_left_texture.create();
+    ground_water_bottom_left_texture.storage(ground_water_bottom_left_data, GL_RGBA8);
+    ground_water_bottom_left_texture.update(ground_water_bottom_left_data, GL_RGBA);
+
+    opengl::Texture ground_water_bottom_right_texture;
+    ground_water_bottom_right_texture.type(opengl::constants::texture_2d);
+    ground_water_bottom_right_texture.create();
+    ground_water_bottom_right_texture.storage(ground_water_bottom_right_data, GL_RGBA8);
+    ground_water_bottom_right_texture.update(ground_water_bottom_right_data, GL_RGBA);
+
+    opengl::Texture ground_water_top_left_texture;
+    ground_water_top_left_texture.type(opengl::constants::texture_2d);
+    ground_water_top_left_texture.create();
+    ground_water_top_left_texture.storage(ground_water_top_left_data, GL_RGBA8);
+    ground_water_top_left_texture.update(ground_water_top_left_data, GL_RGBA);
+
+    opengl::Texture ground_water_top_right_texture;
+    ground_water_top_right_texture.type(opengl::constants::texture_2d);
+    ground_water_top_right_texture.create();
+    ground_water_top_right_texture.storage(ground_water_top_right_data, GL_RGBA8);
+    ground_water_top_right_texture.update(ground_water_top_right_data, GL_RGBA);
+
+
+    // ========================================================================================
     opengl::TextureSampler map_tile_texture_sampler;
     map_tile_texture_sampler.create();
     map_tile_texture_sampler.parameter(opengl::constants::texture_min_filter, GL_NEAREST);
@@ -178,36 +228,9 @@ auto main() -> int {
     constexpr auto tile_rows = 8;
     constexpr auto tile_cols = 8;
 
-    map_tile tiles[tile_rows][tile_cols] {};
-
-    // auto increment = 0;
-
-    for (auto row = 0; row < tile_rows; row++) {
-        const auto offset_x = row * tile_half_width;
-        const auto offset_y = row * tile_half_height;
-
-        for (auto column = 0; column < tile_cols; column++) {
-            auto& map_tile = tiles[row][column];
-
-            auto x = offset_x + column * tile_half_width;
-            auto y = offset_y - column * tile_half_height;
-
-            constexpr auto noise_x_factor = 0.1f;
-            constexpr auto noise_y_factor = 0.1f;
-
-            const auto noise = glm::simplex(glm::vec2(x * noise_x_factor, y * noise_y_factor)); // EP4: 25:00
-            //const auto noise = glm::simplex(glm::vec3(x * noise_x_factor, 1.0f, y * noise_y_factor)); // EP4: 35:00
-
-            map_tile.posistion = {x, y};
-            if (noise <= -0.5f) {
-                map_tile.type = water;
-                // increment++;
-            }
-            else {
-                map_tile.type = ground;
-            }
-        }
-    }
+    Map map;
+    map.generate(tile_half_width, tile_half_height);
+    map.generate_corners();
 
     constexpr auto camera_speed = 250.0f; // TODO this is not right - because of small delta time fix it
 
@@ -249,7 +272,7 @@ auto main() -> int {
 
         for (auto row = 0; row < tile_rows; row++) {
             for (auto column = 0; column < tile_cols; column++) {
-                auto& map_tile = tiles[row][column];
+                auto& map_tile = map.tiles[row][column];
 
                 if (map_tile.type == 0) {
                     ground_1_texture.bind_unit(core::texture::albedo);
