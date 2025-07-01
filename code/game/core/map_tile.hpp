@@ -6,10 +6,12 @@
 #define MAP_TILE_HPP
 
 #include "map_tile_type.hpp"
+#include "map_tile_positions.hpp"
 
 struct map_tile {
     glm::vec2 posistion;
     map_tile_type type {};
+    map_tile_positions position_type { center };
 };
 
 #endif //MAP_TILE_HPP

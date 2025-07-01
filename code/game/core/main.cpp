@@ -275,10 +275,14 @@ auto main() -> int {
                 auto& map_tile = map.tiles[row][column];
 
                 if (map_tile.type == 0) {
-                    ground_1_texture.bind_unit(core::texture::albedo);
+                    if (map_tile.position_type == center) {
+                        ground_1_texture.bind_unit(core::texture::albedo);
+                    }
                 }
                 else if (map_tile.type == 1) {
-                    water_1_texture.bind_unit(core::texture::albedo);
+                    if (map_tile.position_type == center) {
+                        water_1_texture.bind_unit(core::texture::albedo);
+                    }
                 }
 
                 model = glm::translate(glm::mat4(1.0f), glm::vec3(map_tile.posistion, 0.0f));
