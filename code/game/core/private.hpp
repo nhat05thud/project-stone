@@ -18,6 +18,8 @@
 #include <stb_image.h>
 
 #include <iostream>
+
+#include <array>
 #include <map>
 #include <set>
 

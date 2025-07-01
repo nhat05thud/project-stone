@@ -6,8 +6,11 @@
 #define MAP_TILE_TYPE_HPP
 
 enum map_tile_type {
+  water,
   ground,
-  water // TODO hill and mountain?
+  ground_water,
+  hill,
+  mountain
 };
 
 #endif //MAP_TILE_TYPE_HPP

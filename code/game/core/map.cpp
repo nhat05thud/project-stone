@@ -5,9 +5,6 @@
 #include "map.hpp"
 #include "map_tile_positions.hpp"
 
-const auto tile_rows = 8;
-const auto tile_cols = 8;
-
 std::set<map_tile_type> all_tile_types = { ground, water };
 
 std::map<map_tile_type, std::map<map_tile_positions, std::set<map_tile_type>>> tile_rules
@@ -37,6 +34,24 @@ struct cell {
 
 cell cell_tiles[8][8];
 
+auto Map::generate_empty(const float tile_half_width, const float tile_half_height) -> void {
+    for (auto row = 0; row < tile_rows; row++) {
+        const auto offset_x = row * tile_half_width;
+        const auto offset_y = row * tile_half_height;
+
+        for (auto column = 0; column < tile_cols; column++) {
+            auto& map_tile = tiles[row][column];
+
+            auto x = offset_x + column * tile_half_width;
+            auto y = offset_y - column * tile_half_height;
+
+            map_tile.posistion = {x, y};
+
+            map_tile.variation = glm::linearRand(0, 1);
+        }
+    }
+}
+
 auto Map::generate(float tile_half_width, float tile_half_height) -> void {
     srand(time(0)); // EP5 11:00
 
@@ -56,13 +71,12 @@ auto Map::generate(float tile_half_width, float tile_half_height) -> void {
 
             if (noise <= -0.5f) {
                 map_tile.type = water;
-                // increment++;
+                map_tile.variation = glm::linearRand(0, 1);
             }
             else {
                 map_tile.type = ground;
+                map_tile.variation = glm::linearRand(0, 2);
             }
-
-            // std::cout << std::format("{}[{}]", noise, static_cast<int>(map_tile.type));
 
             auto x = offset_x + column * tile_half_width;
             auto y = offset_y - column * tile_half_height;

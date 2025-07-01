@@ -31,6 +31,11 @@ auto main() -> int {
     static auto window_height { 768 };
     static bool window_closed { };
 
+    static auto selected_tile_row { 0 };
+    static auto selected_tile_col { 0 };
+
+    static bool editor_is_active { true };
+
     const auto window = glfwCreateWindow(window_width, window_height, "Project Stone", nullptr);
 
     if (window == nullptr) {
@@ -43,10 +48,49 @@ auto main() -> int {
         window_height = height;
     });
 
+    static Map map;
+
     glfwSetKeyCallback(window, [](int key, int scancode, int action, int mods) {
-       if (key == GLFW_KEY_ESCAPE) {
-           window_closed = true;
-       }
+        if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+            window_closed = true;
+        }
+        if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
+            editor_is_active = !editor_is_active;
+        }
+        if (editor_is_active) {
+            if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+                selected_tile_col++;
+                if (selected_tile_col > Map::tile_cols - 1) {
+                    selected_tile_col = Map::tile_cols - 1;
+                }
+            }
+            else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+                selected_tile_col--;
+                if (selected_tile_col < 0) {
+                    selected_tile_col = 0;
+                }
+            }
+            else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
+                selected_tile_row++;
+                if (selected_tile_row > Map::tile_rows - 1) {
+                    selected_tile_row = Map::tile_rows - 1;
+                }
+            }
+            else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
+                selected_tile_row--;
+                if (selected_tile_row < 0) {
+                    selected_tile_row = 0;
+                }
+            }
+            if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+                map.tiles[selected_tile_row][selected_tile_col].type = water;
+                map.tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 1);
+            }
+            else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+                map.tiles[selected_tile_row][selected_tile_col].type = ground;
+                map.tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 2);
+            }
+        }
     });
 
     glfwSetWindowCloseCallback(window, [] {
@@ -80,7 +124,11 @@ auto main() -> int {
     auto nr_channels = 0;
 
     core::texture::data ground_1_texture_data;
+    core::texture::data ground_2_texture_data;
+    core::texture::data ground_3_texture_data;
+
     core::texture::data water_1_texture_data;
+    core::texture::data water_2_texture_data;
 
     core::texture::data ground_water_bottom_left_data;
     core::texture::data ground_water_bottom_right_data;
@@ -89,7 +137,11 @@ auto main() -> int {
     core::texture::data ground_water_top_right_data;
 
     ground_1_texture_data.ptr = stbi_load("ground_1.png", &ground_1_texture_data.width, &ground_1_texture_data.height, &nr_channels, 0);
+    ground_2_texture_data.ptr = stbi_load("ground_2.png", &ground_2_texture_data.width, &ground_2_texture_data.height, &nr_channels, 0);
+    ground_3_texture_data.ptr = stbi_load("ground_3.png", &ground_3_texture_data.width, &ground_3_texture_data.height, &nr_channels, 0);
+
     water_1_texture_data.ptr = stbi_load("snow.png", &water_1_texture_data.width, &water_1_texture_data.height, &nr_channels, 0);
+    water_2_texture_data.ptr = stbi_load("snow-1.png", &water_2_texture_data.width, &water_2_texture_data.height, &nr_channels, 0);
 
     ground_water_bottom_left_data.ptr = stbi_load("left_bottom.png", &ground_water_bottom_left_data.width, &ground_water_bottom_left_data.height, &nr_channels, 0);
     ground_water_bottom_right_data.ptr = stbi_load("right_bottom.png", &ground_water_bottom_right_data.width, &ground_water_bottom_right_data.height, &nr_channels, 0);
@@ -97,22 +149,14 @@ auto main() -> int {
     ground_water_top_left_data.ptr = stbi_load("left_top.png", &ground_water_top_left_data.width, &ground_water_top_left_data.height, &nr_channels, 0);
     ground_water_top_right_data.ptr = stbi_load("right_top.png", &ground_water_top_right_data.width, &ground_water_top_right_data.height, &nr_channels, 0);
 
-    if (ground_1_texture_data.ptr == nullptr) {
+    if (ground_1_texture_data.ptr == nullptr || ground_2_texture_data.ptr == nullptr || ground_3_texture_data.ptr == nullptr) {
         return -2;
     }
-    if (water_1_texture_data.ptr == nullptr) {
+    if (water_1_texture_data.ptr == nullptr || water_2_texture_data.ptr == nullptr) {
         return -2;
     }
-    if (ground_water_bottom_left_data.ptr == nullptr) {
-        return -2;
-    }
-    if (ground_water_bottom_right_data.ptr == nullptr) {
-        return -2;
-    }
-    if (ground_water_top_left_data.ptr == nullptr) {
-        return -2;
-    }
-    if (ground_water_top_right_data.ptr == nullptr) {
+
+    if (ground_water_bottom_left_data.ptr == nullptr || ground_water_bottom_right_data.ptr == nullptr || ground_water_top_left_data.ptr == nullptr ||ground_water_top_right_data.ptr == nullptr) {
         return -2;
     }
 
@@ -122,11 +166,32 @@ auto main() -> int {
     ground_1_texture.storage(ground_1_texture_data, GL_RGBA8);
     ground_1_texture.update(ground_1_texture_data, GL_RGBA);
 
+    opengl::Texture ground_2_texture;
+    ground_2_texture.type(opengl::constants::texture_2d);
+    ground_2_texture.create();
+    ground_2_texture.storage(ground_2_texture_data, GL_RGBA8);
+    ground_2_texture.update(ground_2_texture_data, GL_RGBA);
+
+    opengl::Texture ground_3_texture;
+    ground_3_texture.type(opengl::constants::texture_2d);
+    ground_3_texture.create();
+    ground_3_texture.storage(ground_3_texture_data, GL_RGBA8);
+    ground_3_texture.update(ground_3_texture_data, GL_RGBA);
+
     opengl::Texture water_1_texture;
     water_1_texture.type(opengl::constants::texture_2d);
     water_1_texture.create();
     water_1_texture.storage(water_1_texture_data, GL_RGBA8);
     water_1_texture.update(water_1_texture_data, GL_RGBA);
+
+    opengl::Texture water_2_texture;
+    water_2_texture.type(opengl::constants::texture_2d);
+    water_2_texture.create();
+    water_2_texture.storage(water_2_texture_data, GL_RGBA8);
+    water_2_texture.update(water_2_texture_data, GL_RGBA);
+
+    const std::array<opengl::Texture, 3> ground_textures { ground_1_texture, ground_2_texture, ground_3_texture };
+    const std::array<opengl::Texture, 2> water_textures { water_1_texture, water_2_texture };
 
     opengl::Texture ground_water_bottom_left_texture;
     ground_water_bottom_left_texture.type(opengl::constants::texture_2d);
@@ -162,8 +227,8 @@ auto main() -> int {
     const auto tile_width =static_cast<float>(ground_1_texture_data.width);
     const auto tile_height =static_cast<float>(ground_1_texture_data.height);
 
-    const auto tile_half_width = tile_width / 2.0f;
-    const auto tile_half_height = tile_height / 2.0f;
+    const auto tile_half_width = tile_width / 4.0f;
+    const auto tile_half_height = tile_height / 4.0f;
 
     const std::vector tile_vertices {
       -tile_half_width, -tile_half_height, 0.0f, 0.0f,
@@ -198,6 +263,8 @@ auto main() -> int {
 
     glm::vec3 camera_position { static_cast<float>(window_width) / 2.0f, static_cast<float>(window_height) / 2.0f, 0.0f };
 
+    auto albedo_color = glm::vec4(1.0f);
+
     auto model = glm::mat4(1.0f);
     auto view = glm::translate(glm::mat4(1.0f), camera_position);;
     auto proj = glm::ortho(
@@ -220,16 +287,18 @@ auto main() -> int {
     camera_ubo.storage(core::buffer::make_data(camera_uniforms), opengl::constants::dynamic_draw);
     camera_ubo.bind_base(opengl::constants::uniform_buffer, core::buffer::camera);
 
+    opengl::Buffer material_ubo;
+    material_ubo.create();
+    material_ubo.storage(core::buffer::make_data(&albedo_color), opengl::constants::dynamic_draw);
+    material_ubo.bind_base(opengl::constants::uniform_buffer, core::buffer::material);
+
     opengl::Commands::clear(0.5f, 0.5f, 0.5f, 1.0f);
 
     opengl::Pipeline::enable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    constexpr auto tile_rows = 8;
-    constexpr auto tile_cols = 8;
-
-    Map map;
-    map.generate(tile_half_width, tile_half_height);
+    // map.generate(tile_half_width, tile_half_height);
+    map.generate_empty(tile_half_width, tile_half_height);
     map.generate_corners();
 
     constexpr auto camera_speed = 250.0f; // TODO this is not right - because of small delta time fix it
@@ -270,23 +339,31 @@ auto main() -> int {
 
         tile_vao.bind();
 
-        for (auto row = 0; row < tile_rows; row++) {
-            for (auto column = 0; column < tile_cols; column++) {
+        for (auto row = 0; row < Map::tile_rows; row++) {
+            for (auto column = 0; column < Map::tile_cols; column++) {
                 auto& map_tile = map.tiles[row][column];
 
-                if (map_tile.type == 0) {
+                if (map_tile.type == ground) {
                     if (map_tile.position_type == center) {
-                        ground_1_texture.bind_unit(core::texture::albedo);
+                        ground_textures[map_tile.variation].bind_unit(core::texture::albedo);
                     }
                 }
-                else if (map_tile.type == 1) {
+                else if (map_tile.type == water) {
                     if (map_tile.position_type == center) {
-                        water_1_texture.bind_unit(core::texture::albedo);
+                        water_textures[map_tile.variation].bind_unit(core::texture::albedo);
                     }
                 }
 
                 model = glm::translate(glm::mat4(1.0f), glm::vec3(map_tile.posistion, 0.0f));
                 transformed_ubo.update(core::buffer::make_data(&model));
+
+                if (editor_is_active && row == selected_tile_row && column == selected_tile_col) {
+                    albedo_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.6f);
+                }
+                else {
+                    albedo_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+                }
+                material_ubo.update(core::buffer::make_data(&albedo_color));
 
                 opengl::Commands::draw_elements(opengl::constants::triangles, tile_elements.size());
             }
