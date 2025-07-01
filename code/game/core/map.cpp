@@ -11,18 +11,18 @@ std::map<map_tile_type, std::map<map_tile_positions, std::set<map_tile_type>>> t
 {
     {
         ground, {
-                { left_top,     { ground, water } },
-                { left_bottom,  { ground, water } },
-                { right_top,    { ground, water } },
-                { right_bottom, { ground, water } }
+                { left_top,     { ground, ground_water } },
+                { left_bottom,  { ground, ground_water } },
+                { right_top,    { ground, ground_water } },
+                { right_bottom, { ground, ground_water } }
         }
     },
     {
         water, {
-                { left_top,     { water, ground } },
-                { left_bottom,  { water, ground } },
-                { right_top,    { water, ground } },
-                { right_bottom, { water, ground } }
+                { left_top,     { water, ground_water } },
+                { left_bottom,  { water, ground_water } },
+                { right_top,    { water, ground_water } },
+                { right_bottom, { water, ground_water } }
         }
     }
 };
@@ -32,7 +32,7 @@ struct cell {
     bool collapsed {};
 };
 
-cell cell_tiles[8][8];
+cell cell_tiles[Map::tile_rows][Map::tile_cols] = {};
 
 auto Map::generate_empty(const float tile_half_width, const float tile_half_height) -> void {
     for (auto row = 0; row < tile_rows; row++) {
@@ -88,9 +88,13 @@ auto Map::generate(float tile_half_width, float tile_half_height) -> void {
 
 auto Map::generate_corners() -> void {
 
+    std::cout << "Generating corners - begin" << std::endl;
+
     for (auto i = 0; i < tile_rows * tile_cols; i++) {
         collapse();
     }
+
+    std::cout << "Generating corners - end" << std::endl;
 }
 
 auto Map::collapse() -> void {
@@ -118,16 +122,19 @@ auto Map::propagate(const int x, const int y) -> void {
     std::vector<map_tile_positions> positions = {left_top, right_top, right_bottom, left_bottom};
 
     for (auto i = 0; i < 4; i++) {
-        int nx = x + directions[i].first;
-        int ny = y + directions[i].second;
+        const auto nx = x + directions[i].first;
+        const auto ny = y + directions[i].second;
 
         auto position = positions[i];
         if (is_valid(nx, ny) && !cell_tiles[nx][ny].collapsed) {
-            map_tile_type new_type;
-            std::set<map_tile_type> allowed = tile_rules[tile_type][position];
+            tiles[nx][ny].marked = true;
 
-            if (allowed.contains(tiles[nx][ny].type)) {
-                // TODO change the tile_position for the tile from center to whatever
+            auto allowed = tile_rules[tile_type][position];
+
+            if (!allowed.contains(tiles[nx][ny].type)) {
+                tiles[nx][ny].type = ground_water;
+                tiles[nx][ny].variation = 0;
+                tiles[nx][ny].position_type = position;
             }
         }
     }

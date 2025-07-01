@@ -22,7 +22,7 @@ class Map {
         static constexpr auto tile_rows = 8;
         static constexpr auto tile_cols = 8;
 
-        map_tile tiles[8][8];
+        map_tile tiles[tile_rows][tile_cols];
 
     private:
 };

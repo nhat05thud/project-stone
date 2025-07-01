@@ -34,7 +34,7 @@ auto main() -> int {
     static auto selected_tile_row { 0 };
     static auto selected_tile_col { 0 };
 
-    static bool editor_is_active { true };
+    static bool editor_is_active { false };
 
     const auto window = glfwCreateWindow(window_width, window_height, "Project Stone", nullptr);
 
@@ -85,10 +85,14 @@ auto main() -> int {
             if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
                 map.tiles[selected_tile_row][selected_tile_col].type = water;
                 map.tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 1);
+
+                map.generate_corners();
             }
             else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
                 map.tiles[selected_tile_row][selected_tile_col].type = ground;
                 map.tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 2);
+
+                map.propagate(selected_tile_row, selected_tile_col);
             }
         }
     });
@@ -190,9 +194,6 @@ auto main() -> int {
     water_2_texture.storage(water_2_texture_data, GL_RGBA8);
     water_2_texture.update(water_2_texture_data, GL_RGBA);
 
-    const std::array<opengl::Texture, 3> ground_textures { ground_1_texture, ground_2_texture, ground_3_texture };
-    const std::array<opengl::Texture, 2> water_textures { water_1_texture, water_2_texture };
-
     opengl::Texture ground_water_bottom_left_texture;
     ground_water_bottom_left_texture.type(opengl::constants::texture_2d);
     ground_water_bottom_left_texture.create();
@@ -217,7 +218,14 @@ auto main() -> int {
     ground_water_top_right_texture.storage(ground_water_top_right_data, GL_RGBA8);
     ground_water_top_right_texture.update(ground_water_top_right_data, GL_RGBA);
 
-
+    const std::array ground_textures { ground_1_texture, ground_2_texture, ground_3_texture };
+    const std::array ground_water_textures {
+        ground_water_top_left_texture,
+        ground_water_bottom_left_texture,
+        ground_water_top_right_texture,
+        ground_water_bottom_right_texture
+    }; // The position follows the enum map_tile_positions
+    const std::array water_textures { water_1_texture, water_2_texture };
     // ========================================================================================
     opengl::TextureSampler map_tile_texture_sampler;
     map_tile_texture_sampler.create();
@@ -299,7 +307,7 @@ auto main() -> int {
 
     // map.generate(tile_half_width, tile_half_height);
     map.generate_empty(tile_half_width, tile_half_height);
-    map.generate_corners();
+    // map.generate_corners();
 
     constexpr auto camera_speed = 250.0f; // TODO this is not right - because of small delta time fix it
 
@@ -344,20 +352,19 @@ auto main() -> int {
                 auto& map_tile = map.tiles[row][column];
 
                 if (map_tile.type == ground) {
-                    if (map_tile.position_type == center) {
-                        ground_textures[map_tile.variation].bind_unit(core::texture::albedo);
-                    }
+                    ground_textures[map_tile.variation].bind_unit(core::texture::albedo);
+                }
+                else if (map_tile.type == ground_water) {
+                    ground_water_textures[map_tile.position_type].bind_unit(core::texture::albedo);
                 }
                 else if (map_tile.type == water) {
-                    if (map_tile.position_type == center) {
-                        water_textures[map_tile.variation].bind_unit(core::texture::albedo);
-                    }
+                    water_textures[map_tile.variation].bind_unit(core::texture::albedo);
                 }
 
                 model = glm::translate(glm::mat4(1.0f), glm::vec3(map_tile.posistion, 0.0f));
                 transformed_ubo.update(core::buffer::make_data(&model));
 
-                if (editor_is_active && row == selected_tile_row && column == selected_tile_col) {
+                if (map_tile.marked || (editor_is_active && row == selected_tile_row && column == selected_tile_col)) {
                     albedo_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.6f);
                 }
                 else {

@@ -11,8 +11,10 @@
 struct map_tile {
     glm::vec2 posistion;
     int32_t variation {};
+
+    bool marked { false };
     map_tile_type type {};
-    map_tile_positions position_type { center };
+    map_tile_positions position_type;
 };
 
 #endif //MAP_TILE_HPP

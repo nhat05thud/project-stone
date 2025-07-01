@@ -6,15 +6,17 @@
 #define MAP_TILE_POSITION_HPP
 
 enum map_tile_positions {
-    top,
-    left,
+    // top,
+
+    // left,
     left_top,
     left_bottom,
-    center,
-    right,
+
+    // right,
     right_top,
     right_bottom,
-    bottom
+
+    // bottom
 };
 
 #endif //MAP_TILE_POSITION_HPP
