@@ -43,12 +43,12 @@ auto main() -> int {
         return -1;
     }
 
-    glfwSetFramebufferSizeCallback(window, [](int width, int height) {
+    glfwSetFramebufferSizeCallback(window, [](const int width, const int height) {
         window_width = width;
         window_height = height;
     });
 
-    static Map map;
+    static core::Map map;
 
     glfwSetKeyCallback(window, [](int key, int scancode, int action, int mods) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -60,8 +60,8 @@ auto main() -> int {
         if (editor_is_active) {
             if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
                 selected_tile_col++;
-                if (selected_tile_col > Map::tile_cols - 1) {
-                    selected_tile_col = Map::tile_cols - 1;
+                if (selected_tile_col > core::Map::tile_cols - 1) {
+                    selected_tile_col = core::Map::tile_cols - 1;
                 }
             }
             else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
@@ -72,8 +72,8 @@ auto main() -> int {
             }
             else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
                 selected_tile_row++;
-                if (selected_tile_row > Map::tile_rows - 1) {
-                    selected_tile_row = Map::tile_rows - 1;
+                if (selected_tile_row > core::Map::tile_rows - 1) {
+                    selected_tile_row = core::Map::tile_rows - 1;
                 }
             }
             else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
@@ -83,13 +83,14 @@ auto main() -> int {
                 }
             }
             if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
-                map.tiles[selected_tile_row][selected_tile_col].type = water;
+                map.tiles[selected_tile_row][selected_tile_col].type = core::map::tile_type::water;
                 map.tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 1);
 
-                map.generate_corners();
+                // map.generate_corners();
+                map.propagate(selected_tile_row, selected_tile_col);
             }
             else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
-                map.tiles[selected_tile_row][selected_tile_col].type = ground;
+                map.tiles[selected_tile_row][selected_tile_col].type = core::map::tile_type::ground;
                 map.tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 2);
 
                 map.propagate(selected_tile_row, selected_tile_col);
@@ -345,26 +346,30 @@ auto main() -> int {
 
         map_tile_texture_sampler.bind(core::texture::albedo);
 
+        // ground_water_textures[left_top].bind_unit(core::texture::albedo); // test
+
         tile_vao.bind();
 
-        for (auto row = 0; row < Map::tile_rows; row++) {
-            for (auto column = 0; column < Map::tile_cols; column++) {
+        // opengl::Commands::draw_elements(opengl::constants::triangles, tile_elements.size()); // test
+
+        for (auto row = 0; row < core::Map::tile_rows; row++) {
+            for (auto column = 0; column < core::Map::tile_cols; column++) {
                 auto& map_tile = map.tiles[row][column];
 
-                if (map_tile.type == ground) {
+                if (map_tile.type == core::map::tile_type::ground) {
                     ground_textures[map_tile.variation].bind_unit(core::texture::albedo);
                 }
-                else if (map_tile.type == ground_water) {
-                    ground_water_textures[map_tile.position_type].bind_unit(core::texture::albedo);
+                else if (map_tile.type == core::map::tile_type::ground_water) {
+                    ground_water_textures[static_cast<int>(map_tile.orientation)].bind_unit(core::texture::albedo);
                 }
-                else if (map_tile.type == water) {
+                else if (map_tile.type == core::map::tile_type::water) {
                     water_textures[map_tile.variation].bind_unit(core::texture::albedo);
                 }
 
                 model = glm::translate(glm::mat4(1.0f), glm::vec3(map_tile.posistion, 0.0f));
                 transformed_ubo.update(core::buffer::make_data(&model));
 
-                if (map_tile.marked || (editor_is_active && row == selected_tile_row && column == selected_tile_col)) {
+                if (/*tile.marked || */(editor_is_active && row == selected_tile_row && column == selected_tile_col)) {
                     albedo_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.6f);
                 }
                 else {
