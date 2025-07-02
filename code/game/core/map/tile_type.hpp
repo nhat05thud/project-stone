@@ -6,6 +6,7 @@
 #define MAP_TILE_TYPE_HPP
 
 namespace core::map {
+    // TODO handle forest different, ex: ground, hill and mountain both can have forest
     enum class tile_type {
         water,
 

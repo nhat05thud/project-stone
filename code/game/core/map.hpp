@@ -10,8 +10,6 @@
 namespace core {
     class Map {
         public:
-            auto generate_empty(float tile_half_width, float tile_half_height) -> void;
-            auto generate(float tile_half_width, float tile_half_height) -> void;
             auto generate_corners() -> void;
 
             auto collapse() -> void;

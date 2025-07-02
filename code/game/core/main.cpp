@@ -19,9 +19,11 @@
 
 #include <core/file.hpp>
 
-#include "map.hpp"
+#include "map_builder.hpp"
 
-auto main() -> int {
+auto main() -> int32_t
+{
+    srand(time(0)); // EP5 11:00 - change: EP10 1:11:30
 
     if (glfwInit() != GLFW_TRUE) {
         return -1;
@@ -36,6 +38,8 @@ auto main() -> int {
 
     static bool editor_is_active { false };
 
+    static std::unique_ptr<core::Map> map;
+
     const auto window = glfwCreateWindow(window_width, window_height, "Project Stone", nullptr);
 
     if (window == nullptr) {
@@ -47,8 +51,6 @@ auto main() -> int {
         window_width = width;
         window_height = height;
     });
-
-    static core::Map map;
 
     glfwSetKeyCallback(window, [](int key, int scancode, int action, int mods) {
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
@@ -83,17 +85,17 @@ auto main() -> int {
                 }
             }
             if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
-                map.tiles[selected_tile_row][selected_tile_col].type = core::map::tile_type::water;
-                map.tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 1);
+                map->tiles[selected_tile_row][selected_tile_col].type = core::map::tile_type::water;
+                map->tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 1);
 
                 // map.generate_corners();
-                map.propagate(selected_tile_row, selected_tile_col);
+                map->propagate(selected_tile_row, selected_tile_col);
             }
             else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
-                map.tiles[selected_tile_row][selected_tile_col].type = core::map::tile_type::ground;
-                map.tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 2);
+                map->tiles[selected_tile_row][selected_tile_col].type = core::map::tile_type::ground;
+                map->tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 2);
 
-                map.propagate(selected_tile_row, selected_tile_col);
+                map->propagate(selected_tile_row, selected_tile_col);
             }
         }
     });
@@ -236,8 +238,8 @@ auto main() -> int {
     const auto tile_width =static_cast<float>(ground_1_texture_data.width);
     const auto tile_height =static_cast<float>(ground_1_texture_data.height);
 
-    const auto tile_half_width = tile_width / 4.0f;
-    const auto tile_half_height = tile_height / 4.0f;
+    const auto tile_half_width = tile_width / 2.0f;
+    const auto tile_half_height = tile_height / 2.0f;
 
     const std::vector tile_vertices {
       -tile_half_width, -tile_half_height, 0.0f, 0.0f,
@@ -306,9 +308,10 @@ auto main() -> int {
     opengl::Pipeline::enable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // map.generate(tile_half_width, tile_half_height);
-    map.generate_empty(tile_half_width, tile_half_height);
-    // map.generate_corners();
+    core::MapBuilder map_builder;
+
+    map = map_builder.generate(core::Map::tile_rows, core::Map::tile_cols, tile_half_width, tile_half_height)
+                     .build();
 
     constexpr auto camera_speed = 250.0f; // TODO this is not right - because of small delta time fix it
 
@@ -354,7 +357,7 @@ auto main() -> int {
 
         for (auto row = 0; row < core::Map::tile_rows; row++) {
             for (auto column = 0; column < core::Map::tile_cols; column++) {
-                auto& map_tile = map.tiles[row][column];
+                auto& map_tile = map->tiles[row][column];
 
                 if (map_tile.type == core::map::tile_type::ground) {
                     ground_textures[map_tile.variation].bind_unit(core::texture::albedo);
