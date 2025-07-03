@@ -10,21 +10,25 @@
 namespace core {
     class Map {
         public:
-            auto generate_corners() -> void;
+            Map(uint32_t rows, uint32_t cols);
 
-            auto collapse() -> void;
+            auto is_within_bounds(int32_t row, int32_t col) const -> bool;
 
-            auto is_valid(const int nx, const int ny) -> bool;
+            auto tile(uint32_t row, uint32_t col) -> map::tile&;
 
-            auto propagate(const int x, const int y) -> void;
+            auto rows() const->uint32_t;
+            auto cols() const->uint32_t;
 
-            static constexpr auto tile_rows = 8;
-            static constexpr auto tile_cols = 8;
-
-            map::tile tiles[tile_rows][tile_cols]; // TODO use just an std::vector here?
+            // TODO move this three functions inside map builder class
+            auto collapse()                 -> void;
+            auto propagate(int x, int y)    -> void;
+            auto generate_corners()         -> void;
 
         private:
             std::vector<map::tile> _tiles;
+
+			uint32_t _rows { };
+            uint32_t _cols { };
     };
 }
 

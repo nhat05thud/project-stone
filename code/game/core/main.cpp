@@ -62,8 +62,8 @@ auto main() -> int32_t
         if (editor_is_active) {
             if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
                 selected_tile_col++;
-                if (selected_tile_col > core::Map::tile_cols - 1) {
-                    selected_tile_col = core::Map::tile_cols - 1;
+                if (selected_tile_col > map->cols() - 1) {
+                    selected_tile_col = map->cols() - 1;
                 }
             }
             else if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
@@ -74,8 +74,8 @@ auto main() -> int32_t
             }
             else if (key == GLFW_KEY_DOWN && action == GLFW_PRESS) {
                 selected_tile_row++;
-                if (selected_tile_row > core::Map::tile_rows - 1) {
-                    selected_tile_row = core::Map::tile_rows - 1;
+                if (selected_tile_row > map->rows() - 1) {
+                    selected_tile_row = map->rows() - 1;
                 }
             }
             else if (key == GLFW_KEY_UP && action == GLFW_PRESS) {
@@ -85,15 +85,18 @@ auto main() -> int32_t
                 }
             }
             if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
-                map->tiles[selected_tile_row][selected_tile_col].type = core::map::tile_type::water;
-                map->tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 1);
+                auto& tile = map->tile(selected_tile_row, selected_tile_col);
 
-                // map.generate_corners();
+                tile.variation  = glm::linearRand(0, 1);
+                tile.type       = core::map::tile_type::water;
+
                 map->propagate(selected_tile_row, selected_tile_col);
             }
             else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
-                map->tiles[selected_tile_row][selected_tile_col].type = core::map::tile_type::ground;
-                map->tiles[selected_tile_row][selected_tile_col].variation = glm::linearRand(0, 2);
+                auto& tile = map->tile(selected_tile_row, selected_tile_col);
+
+                tile.variation  = glm::linearRand(0, 2);
+                tile.type       = core::map::tile_type::ground;
 
                 map->propagate(selected_tile_row, selected_tile_col);
             }
@@ -221,15 +224,10 @@ auto main() -> int32_t
     ground_water_top_right_texture.storage(ground_water_top_right_data, GL_RGBA8);
     ground_water_top_right_texture.update(ground_water_top_right_data, GL_RGBA);
 
-    // TODO this should have poiters inside ex: &ground_1_texture
-    const std::array ground_textures { ground_1_texture, ground_2_texture, ground_3_texture };
-    const std::array ground_water_textures {
-        ground_water_top_left_texture,
-        ground_water_bottom_left_texture,
-        ground_water_top_right_texture,
-        ground_water_bottom_right_texture
-    }; // The position follows the enum map_tile_positions
-    const std::array water_textures { water_1_texture, water_2_texture };
+    const std::array ground_textures { &ground_1_texture, &ground_2_texture, &ground_3_texture };
+    const std::array ground_water_textures { &ground_water_top_left_texture, &ground_water_bottom_left_texture,  &ground_water_top_right_texture, &ground_water_bottom_right_texture }; // The position follows the enum map_tile_positions
+    const std::array water_textures { &water_1_texture, &water_2_texture };
+
     // ========================================================================================
     opengl::TextureSampler map_tile_texture_sampler;
     map_tile_texture_sampler.create();
@@ -311,7 +309,8 @@ auto main() -> int32_t
 
     core::MapBuilder map_builder;
 
-    map = map_builder.generate_empty(core::Map::tile_rows, core::Map::tile_cols, tile_half_width, tile_half_height)
+    map = map_builder.create(8, 8)
+                     .generate_empty(tile_half_width, tile_half_height)
                      .build();
 
     constexpr auto camera_speed = 250.0f; // TODO this is not right - because of small delta time fix it
@@ -356,24 +355,28 @@ auto main() -> int32_t
 
         // opengl::Commands::draw_elements(opengl::constants::triangles, tile_elements.size()); // test
 
-        for (auto row = 0; row < core::Map::tile_rows; row++) {
-            for (auto column = 0; column < core::Map::tile_cols; column++) {
-                auto& map_tile = map->tiles[row][column];
+        for (auto row = 0; row < map->rows(); row++) {
+            for (auto column = 0; column < map->cols(); column++) {
+                auto& map_tile = map->tile(row, column);
 
-                if (map_tile.type == core::map::tile_type::ground) {
-                    ground_textures[map_tile.variation].bind_unit(core::texture::albedo);
+                if (map_tile.type == core::map::tile_type::ground) 
+                {
+                    ground_textures[map_tile.variation]->bind_unit(core::texture::albedo);
                 }
-                else if (map_tile.type == core::map::tile_type::ground_water) {
-                    ground_water_textures[static_cast<int>(map_tile.orientation)].bind_unit(core::texture::albedo);
+                else if (map_tile.type == core::map::tile_type::ground_water) 
+                {
+                    ground_water_textures[static_cast<int>(map_tile.orientation)]->bind_unit(core::texture::albedo);
                 }
-                else if (map_tile.type == core::map::tile_type::water) {
-                    water_textures[map_tile.variation].bind_unit(core::texture::albedo);
+                else if (map_tile.type == core::map::tile_type::water) 
+                {
+                    water_textures[map_tile.variation]->bind_unit(core::texture::albedo);
                 }
 
                 model = glm::translate(glm::mat4(1.0f), glm::vec3(map_tile.posistion, 0.0f));
                 transformed_ubo.update(core::buffer::make_data(&model));
 
-                if (/*tile.marked || */(editor_is_active && row == selected_tile_row && column == selected_tile_col)) {
+                if (/*tile.marked || */(editor_is_active && row == selected_tile_row && column == selected_tile_col)) 
+                {
                     albedo_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.6f);
                 }
                 else {

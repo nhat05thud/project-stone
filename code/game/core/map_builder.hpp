@@ -12,12 +12,13 @@ namespace core
     class MapBuilder
     {
     public:
-        auto generate       (uint32_t rows, uint32_t columns, float tile_half_width, float tile_half_height) -> MapBuilder&;
-        auto generate_empty (uint32_t rows, uint32_t columns, float tile_half_width, float tile_half_height) -> MapBuilder&;
+        auto create(uint32_t rows, uint32_t cols) -> MapBuilder&;
+
+        auto generate       (float tile_half_width, float tile_half_height) -> MapBuilder&;
+        auto generate_empty (float tile_half_width, float tile_half_height) -> MapBuilder&;
 
         auto build() -> std::unique_ptr<Map>;
         // TODO have an edit function which takes and aqcuire a pointer from a map?
-
 
     private:
         std::unique_ptr<Map> _map;

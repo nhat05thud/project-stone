@@ -12,12 +12,12 @@ namespace core::map {
         // top,
 
         // left,
-        left_top,
-        left_bottom,
+        left_top        = 1,
+        left_bottom     = 2,
 
         // right,
-        right_top,
-        right_bottom,
+        right_top       = 4,
+        right_bottom    = 8,
 
         // bottom
     };
