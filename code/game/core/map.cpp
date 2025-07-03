@@ -95,8 +95,8 @@ namespace core {
 
                     // TODO don't let this with the *iterator
                     tiles[nx][ny].type = *new_allowed.begin(); // TODO this should be selected from the allowed set
-                    tiles[nx][ny].variation = 0;
                     tiles[nx][ny].orientation = position;
+                    tiles[nx][ny].variation = 0;
                 }
                 else {
                     // TODO go over the neighbor and see how many of them you have, based on that choose the appropriate orientation

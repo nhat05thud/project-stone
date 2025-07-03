@@ -10,7 +10,7 @@ namespace core
     {
         assert(_map == nullptr);
 
-        _map = std::make_unique<Map>();
+		_map = std::make_unique<Map>(); // TODO move this into a create function?
 
         const auto noise_seed_factor = glm::linearRand(1.0f, 10.0f);
 
@@ -24,9 +24,9 @@ namespace core
                 constexpr auto noise_x_factor = 0.2f;
                 constexpr auto noise_y_factor = 0.2f;
 
-                const auto noise = glm::simplex(glm::vec3(row * noise_x_factor, column * noise_y_factor, noise_seed_factor));
+                const auto noise_value = glm::simplex(glm::vec3(row * noise_x_factor, column * noise_y_factor, noise_seed_factor));
 
-                if (noise <= -0.5f) {
+                if (noise_value <= -0.5f) {
                     tile.variation = glm::linearRand(0, 1);
                     tile.type = map::tile_type::water;
                 }
@@ -49,7 +49,7 @@ namespace core
     {
         assert(_map == nullptr);
 
-        _map = std::make_unique<Map>();
+        _map = std::make_unique<Map>(); // TODO move this into a create function?
 
         for (auto row = 0; row < rows; row++) {
             const auto offset_x = row * tile_half_width;

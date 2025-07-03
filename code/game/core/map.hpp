@@ -21,9 +21,10 @@ namespace core {
             static constexpr auto tile_rows = 8;
             static constexpr auto tile_cols = 8;
 
-            map::tile tiles[tile_rows][tile_cols];
+            map::tile tiles[tile_rows][tile_cols]; // TODO use just an std::vector here?
 
         private:
+            std::vector<map::tile> _tiles;
     };
 }
 

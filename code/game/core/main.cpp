@@ -221,6 +221,7 @@ auto main() -> int32_t
     ground_water_top_right_texture.storage(ground_water_top_right_data, GL_RGBA8);
     ground_water_top_right_texture.update(ground_water_top_right_data, GL_RGBA);
 
+    // TODO this should have poiters inside ex: &ground_1_texture
     const std::array ground_textures { ground_1_texture, ground_2_texture, ground_3_texture };
     const std::array ground_water_textures {
         ground_water_top_left_texture,
@@ -310,7 +311,7 @@ auto main() -> int32_t
 
     core::MapBuilder map_builder;
 
-    map = map_builder.generate(core::Map::tile_rows, core::Map::tile_cols, tile_half_width, tile_half_height)
+    map = map_builder.generate_empty(core::Map::tile_rows, core::Map::tile_cols, tile_half_width, tile_half_height)
                      .build();
 
     constexpr auto camera_speed = 250.0f; // TODO this is not right - because of small delta time fix it
