@@ -75,12 +75,12 @@ namespace core {
 
         auto tile_type = tile(x, y).type;
 
-        for (auto i = 0; i < 4; i++) 
+        for (auto n = 0; n < 4; n++) 
         {
-            auto position = positions[i];
+            auto position = positions[n];
 
-            const auto nx = x + directions[i].first;
-            const auto ny = y + directions[i].second;
+            const auto nx = x + directions[n].first;
+            const auto ny = y + directions[n].second;
 
             if (is_within_bounds(nx, ny) /*&& !cell_tiles[nx][ny].collapsed*/) 
             { 
@@ -92,8 +92,11 @@ namespace core {
 
                 if (allowed.contains(next_tile.type) == false) 
                 {
+                    std::println("not allowed {}", static_cast<int>(position));
+
                     std::set<map::tile_type> new_allowed;
-                    std::ranges::copy_if(allowed, std::inserter(new_allowed, new_allowed.begin()), [&](auto type) {
+                    std::ranges::copy_if(allowed, std::inserter(new_allowed, new_allowed.begin()), [&](auto type) 
+                    {
                        return type != tile_type;
                     });
 
@@ -105,8 +108,33 @@ namespace core {
                     next_tile.variation     = 0;
                 }
                 else {
-                    // TODO go over the neighbor and see how many of them you have, based on that choose the appropriate orientation
+                    std::println("allowed {}", static_cast<int>(position));
 
+                    // TODO first check if the one that is allowed is the same as the current/main tile - skip if it is the case
+                    // TODO get som orientation based on the direction between the current tile and the neighbor
+                    // TODO based on the orientation adjust the orientation of the neighbor
+                    // TODO the loop over the neighbor - neighbors is not needes
+
+                    std::vector<map::tile_orientation> orientations;
+
+                    /*for (auto i = 0; i < 4; i++) 
+                    {
+                        const auto new_position = positions[i];
+
+                        const auto ix = nx + directions[i].first;
+                        const auto iy = ny + directions[i].second;
+
+                        if (is_within_bounds(ix, iy)) {
+                            auto& new_tile = tile(ix, iy);
+                            orientations.push_back(new_tile.orientation);
+                        }
+                    }*/
+
+                    for (int b = 0; b < orientations.size(); b++) 
+                    {
+                        std::println("{} ", static_cast<int>(orientations[b]));
+
+                    }
                 }
             }
         }

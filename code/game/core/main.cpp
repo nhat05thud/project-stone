@@ -140,11 +140,13 @@ auto main() -> int32_t
     core::texture::data water_1_texture_data;
     core::texture::data water_2_texture_data;
 
-    core::texture::data ground_water_bottom_left_data;
-    core::texture::data ground_water_bottom_right_data;
+    core::texture::data ground_water_bottom_left_texture_data;
+    core::texture::data ground_water_bottom_right_texture_data;
 
-    core::texture::data ground_water_top_left_data;
-    core::texture::data ground_water_top_right_data;
+    core::texture::data ground_water_top_left_texture_data;
+    core::texture::data ground_water_top_right_texture_data;
+
+    core::texture::data ground_water_bottom_texture_data;
 
     ground_1_texture_data.ptr = stbi_load("ground_1.png", &ground_1_texture_data.width, &ground_1_texture_data.height, &nr_channels, 0);
     ground_2_texture_data.ptr = stbi_load("ground_2.png", &ground_2_texture_data.width, &ground_2_texture_data.height, &nr_channels, 0);
@@ -153,20 +155,27 @@ auto main() -> int32_t
     water_1_texture_data.ptr = stbi_load("snow.png", &water_1_texture_data.width, &water_1_texture_data.height, &nr_channels, 0);
     water_2_texture_data.ptr = stbi_load("snow-1.png", &water_2_texture_data.width, &water_2_texture_data.height, &nr_channels, 0);
 
-    ground_water_bottom_left_data.ptr = stbi_load("left_bottom.png", &ground_water_bottom_left_data.width, &ground_water_bottom_left_data.height, &nr_channels, 0);
-    ground_water_bottom_right_data.ptr = stbi_load("right_bottom.png", &ground_water_bottom_right_data.width, &ground_water_bottom_right_data.height, &nr_channels, 0);
+    ground_water_bottom_left_texture_data.ptr   = stbi_load("left_bottom.png", &ground_water_bottom_left_texture_data.width, &ground_water_bottom_left_texture_data.height, &nr_channels, 0);
+    ground_water_bottom_right_texture_data.ptr  = stbi_load("right_bottom.png", &ground_water_bottom_right_texture_data.width, &ground_water_bottom_right_texture_data.height, &nr_channels, 0);
+    ground_water_top_left_texture_data.ptr      = stbi_load("left_top.png", &ground_water_top_left_texture_data.width, &ground_water_top_left_texture_data.height, &nr_channels, 0);
+    ground_water_top_right_texture_data.ptr     = stbi_load("right_top.png", &ground_water_top_right_texture_data.width, &ground_water_top_right_texture_data.height, &nr_channels, 0);
+    
+    ground_water_bottom_texture_data.ptr        = stbi_load("bottom.png", &ground_water_bottom_texture_data.width, &ground_water_bottom_texture_data.height, &nr_channels, 0);
 
-    ground_water_top_left_data.ptr = stbi_load("left_top.png", &ground_water_top_left_data.width, &ground_water_top_left_data.height, &nr_channels, 0);
-    ground_water_top_right_data.ptr = stbi_load("right_top.png", &ground_water_top_right_data.width, &ground_water_top_right_data.height, &nr_channels, 0);
 
     if (ground_1_texture_data.ptr == nullptr || ground_2_texture_data.ptr == nullptr || ground_3_texture_data.ptr == nullptr) {
         return -2;
     }
+
     if (water_1_texture_data.ptr == nullptr || water_2_texture_data.ptr == nullptr) {
         return -2;
     }
 
-    if (ground_water_bottom_left_data.ptr == nullptr || ground_water_bottom_right_data.ptr == nullptr || ground_water_top_left_data.ptr == nullptr ||ground_water_top_right_data.ptr == nullptr) {
+    if (ground_water_bottom_left_texture_data.ptr == nullptr || ground_water_bottom_right_texture_data.ptr == nullptr || ground_water_top_left_texture_data.ptr == nullptr ||ground_water_top_right_texture_data.ptr == nullptr) {
+        return -2;
+    }
+
+    if (ground_water_bottom_texture_data.ptr == nullptr) {
         return -2;
     }
 
@@ -203,29 +212,42 @@ auto main() -> int32_t
     opengl::Texture ground_water_bottom_left_texture;
     ground_water_bottom_left_texture.type(opengl::constants::texture_2d);
     ground_water_bottom_left_texture.create();
-    ground_water_bottom_left_texture.storage(ground_water_bottom_left_data, GL_RGBA8);
-    ground_water_bottom_left_texture.update(ground_water_bottom_left_data, GL_RGBA);
+    ground_water_bottom_left_texture.storage(ground_water_bottom_left_texture_data, GL_RGBA8);
+    ground_water_bottom_left_texture.update(ground_water_bottom_left_texture_data, GL_RGBA);
 
     opengl::Texture ground_water_bottom_right_texture;
     ground_water_bottom_right_texture.type(opengl::constants::texture_2d);
     ground_water_bottom_right_texture.create();
-    ground_water_bottom_right_texture.storage(ground_water_bottom_right_data, GL_RGBA8);
-    ground_water_bottom_right_texture.update(ground_water_bottom_right_data, GL_RGBA);
+    ground_water_bottom_right_texture.storage(ground_water_bottom_right_texture_data, GL_RGBA8);
+    ground_water_bottom_right_texture.update(ground_water_bottom_right_texture_data, GL_RGBA);
 
     opengl::Texture ground_water_top_left_texture;
     ground_water_top_left_texture.type(opengl::constants::texture_2d);
     ground_water_top_left_texture.create();
-    ground_water_top_left_texture.storage(ground_water_top_left_data, GL_RGBA8);
-    ground_water_top_left_texture.update(ground_water_top_left_data, GL_RGBA);
+    ground_water_top_left_texture.storage(ground_water_top_left_texture_data, GL_RGBA8);
+    ground_water_top_left_texture.update(ground_water_top_left_texture_data, GL_RGBA);
 
     opengl::Texture ground_water_top_right_texture;
     ground_water_top_right_texture.type(opengl::constants::texture_2d);
     ground_water_top_right_texture.create();
-    ground_water_top_right_texture.storage(ground_water_top_right_data, GL_RGBA8);
-    ground_water_top_right_texture.update(ground_water_top_right_data, GL_RGBA);
+    ground_water_top_right_texture.storage(ground_water_top_right_texture_data, GL_RGBA8);
+    ground_water_top_right_texture.update(ground_water_top_right_texture_data, GL_RGBA);
+
+    opengl::Texture ground_water_bottom_texture;
+    ground_water_bottom_texture.type(opengl::constants::texture_2d);
+    ground_water_bottom_texture.create();
+    ground_water_bottom_texture.storage(ground_water_bottom_texture_data, GL_RGBA8);
+    ground_water_bottom_texture.update(ground_water_bottom_texture_data, GL_RGBA);
+
+    const std::map<core::map::tile_orientation, opengl::Texture*> ground_water_textures 
+    {
+        { core::map::tile_orientation::left_top,        &ground_water_top_left_texture      },
+        { core::map::tile_orientation::left_bottom,     &ground_water_bottom_left_texture   },
+        { core::map::tile_orientation::right_top,       &ground_water_top_right_texture     },
+        { core::map::tile_orientation::right_bottom,    &ground_water_bottom_right_texture  }
+    };
 
     const std::array ground_textures { &ground_1_texture, &ground_2_texture, &ground_3_texture };
-    const std::array ground_water_textures { &ground_water_top_left_texture, &ground_water_bottom_left_texture,  &ground_water_top_right_texture, &ground_water_bottom_right_texture }; // The position follows the enum map_tile_positions
     const std::array water_textures { &water_1_texture, &water_2_texture };
 
     // ========================================================================================
@@ -349,11 +371,7 @@ auto main() -> int32_t
 
         map_tile_texture_sampler.bind(core::texture::albedo);
 
-        // ground_water_textures[left_top].bind_unit(core::texture::albedo); // test
-
         tile_vao.bind();
-
-        // opengl::Commands::draw_elements(opengl::constants::triangles, tile_elements.size()); // test
 
         for (auto row = 0; row < map->rows(); row++) {
             for (auto column = 0; column < map->cols(); column++) {
@@ -365,7 +383,7 @@ auto main() -> int32_t
                 }
                 else if (map_tile.type == core::map::tile_type::ground_water) 
                 {
-                    ground_water_textures[static_cast<int>(map_tile.orientation)]->bind_unit(core::texture::albedo);
+                    ground_water_textures.at(map_tile.orientation)->bind_unit(core::texture::albedo);
                 }
                 else if (map_tile.type == core::map::tile_type::water) 
                 {
@@ -375,7 +393,7 @@ auto main() -> int32_t
                 model = glm::translate(glm::mat4(1.0f), glm::vec3(map_tile.posistion, 0.0f));
                 transformed_ubo.update(core::buffer::make_data(&model));
 
-                if (/*tile.marked || */(editor_is_active && row == selected_tile_row && column == selected_tile_col)) 
+                if (/*map_tile.marked ||*/ (editor_is_active && row == selected_tile_row && column == selected_tile_col)) 
                 {
                     albedo_color = glm::vec4(1.0f, 1.0f, 1.0f, 0.6f);
                 }
