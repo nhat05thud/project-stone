@@ -73,7 +73,7 @@ namespace core {
         std::vector<std::pair<int, int>> directions = { { -1, 0 }, { 0, 1 }, { 1, 0 }, { 0, -1 } };
         std::vector<map::tile_orientation> positions = { map::tile_orientation::left_top, map::tile_orientation::right_top, map::tile_orientation::right_bottom, map::tile_orientation::left_bottom};
 
-        auto tile_type = tile(x, y).type;
+        auto current_type = tile(x, y).type;
 
         for (auto n = 0; n < 4; n++) 
         {
@@ -88,53 +88,51 @@ namespace core {
 
                 next_tile.marked = true;
 
-                auto allowed = tile_rules[tile_type][position];
+                auto allowed = tile_rules[current_type][position];
 
-                if (allowed.contains(next_tile.type) == false) 
+                if (allowed.contains(next_tile.type)) 
                 {
+                    std::println("allowed {}", static_cast<int>(position));
+
+                    auto new_orientation = 0;
+
+                    if (static_cast<int>(next_tile.orientation) & static_cast<int>(position))
+                    {
+                        new_orientation = static_cast<int>(next_tile.orientation);
+                        new_orientation &= ~static_cast<int>(position);
+
+                        if (new_orientation == 0)
+                        {
+                            next_tile.type = current_type;
+                        }
+                    }
+                    else 
+                    {
+                        new_orientation = static_cast<int>(next_tile.orientation) | static_cast<int>(position);
+                    }
+
+                    next_tile.orientation = static_cast<map::tile_orientation>(new_orientation);
+
+                    // TODO first check if the one that is allowed is the same as the current/main tile - skip if it is the case
+                    // TODO get som orientation based on the direction between the current tile and the neighbor
+                    // TODO based on the orientation adjust the orientation of the neighbor
+
+                }
+                else {
                     std::println("not allowed {}", static_cast<int>(position));
 
                     std::set<map::tile_type> new_allowed;
-                    std::ranges::copy_if(allowed, std::inserter(new_allowed, new_allowed.begin()), [&](auto type) 
+                    std::ranges::copy_if(allowed, std::inserter(new_allowed, new_allowed.begin()), [&](auto type)
                     {
-                       return type != tile_type;
+                        return type != current_type;
                     });
 
                     assert(new_allowed.size() == 1); // TODO check this in the feature to fix it if more than one is allowed based on some weight
 
                     // TODO don't let this with the *iterator
-                    next_tile.type          = *new_allowed.begin(); // TODO this should be selected from the allowed set
-                    next_tile.orientation   = position;
-                    next_tile.variation     = 0;
-                }
-                else {
-                    std::println("allowed {}", static_cast<int>(position));
-
-                    // TODO first check if the one that is allowed is the same as the current/main tile - skip if it is the case
-                    // TODO get som orientation based on the direction between the current tile and the neighbor
-                    // TODO based on the orientation adjust the orientation of the neighbor
-                    // TODO the loop over the neighbor - neighbors is not needes
-
-                    std::vector<map::tile_orientation> orientations;
-
-                    /*for (auto i = 0; i < 4; i++) 
-                    {
-                        const auto new_position = positions[i];
-
-                        const auto ix = nx + directions[i].first;
-                        const auto iy = ny + directions[i].second;
-
-                        if (is_within_bounds(ix, iy)) {
-                            auto& new_tile = tile(ix, iy);
-                            orientations.push_back(new_tile.orientation);
-                        }
-                    }*/
-
-                    for (int b = 0; b < orientations.size(); b++) 
-                    {
-                        std::println("{} ", static_cast<int>(orientations[b]));
-
-                    }
+                    next_tile.type = *new_allowed.begin(); // TODO this should be selected from the allowed set
+                    next_tile.orientation = position;
+                    next_tile.variation = 0;
                 }
             }
         }
