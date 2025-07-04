@@ -45,6 +45,9 @@ namespace core
                 auto y = offset_y - col * tile_half_height;
 
                 tile.posistion = {x, y};
+
+                // TODO this tiles should have all sides on their orientation?
+
             }
         }
 
@@ -65,8 +68,9 @@ namespace core
                 auto x = offset_x + col * tile_half_width;
                 auto y = offset_y - col * tile_half_height;
 
-                tile.variation = glm::linearRand(0, 1);
-                tile.posistion = {x, y};
+                tile.variation   = glm::linearRand(0, 1);
+                tile.orientation = map::tile_orientation::all_sides;
+                tile.posistion   = {x, y};
             }
         }
 

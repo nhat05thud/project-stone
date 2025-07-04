@@ -87,16 +87,18 @@ auto main() -> int32_t
             if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
                 auto& tile = map->tile(selected_tile_row, selected_tile_col);
 
-                tile.variation  = glm::linearRand(0, 1);
-                tile.type       = core::map::tile_type::water;
+                tile.variation   = glm::linearRand(0, 1);
+                tile.orientation = core::map::tile_orientation::all_sides;
+                tile.type        = core::map::tile_type::water;
 
                 map->propagate(selected_tile_row, selected_tile_col);
             }
             else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
                 auto& tile = map->tile(selected_tile_row, selected_tile_col);
 
-                tile.variation  = glm::linearRand(0, 2);
-                tile.type       = core::map::tile_type::ground;
+                tile.variation   = glm::linearRand(0, 2);
+                tile.orientation = core::map::tile_orientation::all_sides;
+                tile.type        = core::map::tile_type::ground;
 
                 map->propagate(selected_tile_row, selected_tile_col);
             }
@@ -154,6 +156,11 @@ auto main() -> int32_t
     core::texture::data ground_water_left_right_texture_data;
     core::texture::data ground_water_top_bottom_texture_data;
 
+    core::texture::data ground_water_top_left_with_sides_texure_data;
+    core::texture::data ground_water_top_right_with_sides_texure_data;
+    core::texture::data ground_water_bottom_left_with_sides_texure_data;
+    core::texture::data ground_water_bottom_right_with_sides_texure_data;
+
     ground_1_texture_data.ptr = stbi_load("grass_1.png", &ground_1_texture_data.width, &ground_1_texture_data.height, &nr_channels, 0);
     ground_2_texture_data.ptr = stbi_load("grass_1.png", &ground_2_texture_data.width, &ground_2_texture_data.height, &nr_channels, 0);
     ground_3_texture_data.ptr = stbi_load("grass_1.png", &ground_3_texture_data.width, &ground_3_texture_data.height, &nr_channels, 0);
@@ -174,6 +181,12 @@ auto main() -> int32_t
     ground_water_left_right_texture_data.ptr    = stbi_load("grass_left_bottom_right_top.png", &ground_water_left_right_texture_data.width, &ground_water_left_right_texture_data.height, &nr_channels, 0);
     ground_water_top_bottom_texture_data.ptr    = stbi_load("grass_left_top_right_bottom.png", &ground_water_top_bottom_texture_data.width, &ground_water_top_bottom_texture_data.height, &nr_channels, 0);
 
+
+    ground_water_top_left_with_sides_texure_data.ptr        = stbi_load("top_left_with_sides.png", &ground_water_top_left_with_sides_texure_data.width, &ground_water_top_left_with_sides_texure_data.height, &nr_channels, 0);
+    ground_water_top_right_with_sides_texure_data.ptr       = stbi_load("top_right_with_sides.png", &ground_water_top_right_with_sides_texure_data.width, &ground_water_top_right_with_sides_texure_data.height, &nr_channels, 0);
+    ground_water_bottom_left_with_sides_texure_data.ptr     = stbi_load("bottom_left_with_sides.png", &ground_water_bottom_left_with_sides_texure_data.width, &ground_water_bottom_left_with_sides_texure_data.height, &nr_channels, 0);
+    ground_water_bottom_right_with_sides_texure_data.ptr    = stbi_load("bottom_right_with_sides.png", &ground_water_bottom_right_with_sides_texure_data.width, &ground_water_bottom_right_with_sides_texure_data.height, &nr_channels, 0);
+
     if (ground_1_texture_data.ptr == nullptr || ground_2_texture_data.ptr == nullptr || ground_3_texture_data.ptr == nullptr) {
         return -2;
     }
@@ -191,6 +204,10 @@ auto main() -> int32_t
     }
 
     if (ground_water_left_right_texture_data.ptr == nullptr || ground_water_top_bottom_texture_data.ptr == nullptr) {
+        return -2;
+    }
+
+    if (ground_water_top_left_with_sides_texure_data.ptr == nullptr || ground_water_top_right_with_sides_texure_data.ptr == nullptr || ground_water_bottom_left_with_sides_texure_data.ptr == nullptr || ground_water_bottom_right_with_sides_texure_data.ptr == nullptr) {
         return -2;
     }
 
@@ -284,20 +301,51 @@ auto main() -> int32_t
     ground_water_top_bottom_texture.storage(ground_water_top_bottom_texture_data, GL_RGBA8);
     ground_water_top_bottom_texture.update(ground_water_top_bottom_texture_data, GL_RGBA);
 
+    opengl::Texture ground_water_top_left_with_sides_texure;
+    ground_water_top_left_with_sides_texure.type(opengl::constants::texture_2d);
+    ground_water_top_left_with_sides_texure.create();
+    ground_water_top_left_with_sides_texure.storage(ground_water_top_left_with_sides_texure_data, GL_RGBA8);
+    ground_water_top_left_with_sides_texure.update(ground_water_top_left_with_sides_texure_data, GL_RGBA);
+
+    opengl::Texture ground_water_top_right_with_sides_texure;
+    ground_water_top_right_with_sides_texure.type(opengl::constants::texture_2d);
+    ground_water_top_right_with_sides_texure.create();
+    ground_water_top_right_with_sides_texure.storage(ground_water_top_right_with_sides_texure_data, GL_RGBA8);
+    ground_water_top_right_with_sides_texure.update(ground_water_top_right_with_sides_texure_data, GL_RGBA);
+
+    opengl::Texture ground_water_bottom_left_with_sides_texure;
+    ground_water_bottom_left_with_sides_texure.type(opengl::constants::texture_2d);
+    ground_water_bottom_left_with_sides_texure.create();
+    ground_water_bottom_left_with_sides_texure.storage(ground_water_bottom_left_with_sides_texure_data, GL_RGBA8);
+    ground_water_bottom_left_with_sides_texure.update(ground_water_bottom_left_with_sides_texure_data, GL_RGBA);
+
+    opengl::Texture ground_water_bottom_right_with_sides_texure;
+    ground_water_bottom_right_with_sides_texure.type(opengl::constants::texture_2d);
+    ground_water_bottom_right_with_sides_texure.create();
+    ground_water_bottom_right_with_sides_texure.storage(ground_water_bottom_right_with_sides_texure_data, GL_RGBA8);
+    ground_water_bottom_right_with_sides_texure.update(ground_water_bottom_right_with_sides_texure_data, GL_RGBA);
+
     const std::map<core::map::tile_orientation, opengl::Texture*> ground_water_textures 
     {
+        /* one direction */
         { core::map::tile_orientation::left_top,        &ground_water_top_left_texture      },
         { core::map::tile_orientation::left_bottom,     &ground_water_bottom_left_texture   },
         { core::map::tile_orientation::right_top,       &ground_water_top_right_texture     },
         { core::map::tile_orientation::right_bottom,    &ground_water_bottom_right_texture  },
 
-        /* double combinations */
+        /* two directions */
         { core::map::tile_orientation::top,             &ground_water_top_texture           },
         { core::map::tile_orientation::bottom,          &ground_water_bottom_texture        },
         { core::map::tile_orientation::left,            &ground_water_left_texture          },
         { core::map::tile_orientation::right,           &ground_water_right_texture         },
         { core::map::tile_orientation::left_right,      &ground_water_left_right_texture    },
-        { core::map::tile_orientation::top_bottom,      &ground_water_top_bottom_texture    }
+        { core::map::tile_orientation::top_bottom,      &ground_water_top_bottom_texture    },
+
+        /* directions with sides */
+        { core::map::tile_orientation::left_top_with_sides,            &ground_water_top_left_with_sides_texure         },
+        { core::map::tile_orientation::left_bottom_with_sides,         &ground_water_top_right_with_sides_texure        },
+        { core::map::tile_orientation::right_bottom_with_sides,        &ground_water_bottom_left_with_sides_texure      },
+        { core::map::tile_orientation::right_top_with_sides,           &ground_water_bottom_right_with_sides_texure     }
     };
 
     const std::array ground_textures { &ground_1_texture, &ground_2_texture, &ground_3_texture };

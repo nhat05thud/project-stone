@@ -113,8 +113,13 @@ namespace core {
 
                     next_tile.orientation = static_cast<map::tile_orientation>(new_orientation);
 
+                    if (static_cast<map::tile_orientation>(new_orientation) == map::tile_orientation::all_sides)
+                    {
+                        next_tile.type = current_type;
+                    }
+
                     // TODO first check if the one that is allowed is the same as the current/main tile - skip if it is the case
-                    // TODO get som orientation based on the direction between the current tile and the neighbor
+                    // TODO get some orientation based on the direction between the current tile and the neighbor
                     // TODO based on the orientation adjust the orientation of the neighbor
 
                 }

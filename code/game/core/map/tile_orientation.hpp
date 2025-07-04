@@ -29,7 +29,11 @@ namespace core::map {
         left_top_with_sides     = right_top | right_bottom | left_bottom,
         left_bottom_with_sides  = left_top  | left_bottom  | right_bottom,
         right_bottom_with_sides = left_top  | left_bottom  | right_top,
-        right_top_with_sides    = right_top | right_bottom | left_top
+        right_top_with_sides    = right_top | right_bottom | left_top,
+
+        /* all sides */
+
+        all_sides = left_top | left_bottom | right_top | right_bottom
     };
 }
 #endif //MAP_TILE_POSITION_HPP
